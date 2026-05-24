@@ -162,4 +162,16 @@ async def countdown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def mark_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     args = context.args
-    if not args or not args[0].i
+async def mark_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    args = context.args
+    if not args or not args[0].isdigit():
+        await update.message.reply_text("Usage: /done <number>\nExample: /done 1")
+        return
+    index = int(args[0]) - 1
+    if user_id not in assignments or index >= len(assignments[user_id]):
+        await update.message.reply_text("Assignment not found!")
+        return
+    assignments[user_id][index]["done"] = True
+    subject = assignments[user_id][index]["subject"]
+    await update.message.reply_text(f"🎉 Great job! '{subject}' marked as done!")
