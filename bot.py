@@ -4,6 +4,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 from google import genai
 import requests
+from whatsapp import send_whatsapp, MY_PHONE
 from bs4 import BeautifulSoup
 
 from config import TOKEN, GEMINI_API_KEY
@@ -315,6 +316,19 @@ async def tips(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     await update.message.reply_text(ai_generate(prompt))
 
+async def test_whatsapp(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    from whatsapp import send_whatsapp, MY_PHONE
+    result = send_whatsapp(MY_PHONE,
+        "⏰ REMINDER!\n\n"
+        "📚 Marketing is due TOMORROW!\n"
+        "📅 Deadline: 23-05-2026\n\n"
+        "Don't forget to prepare! 💪\n\n"
+        "Powered by StudyMind AI 🤖"
+    )
+    if "true" in str(result):
+        await update.message.reply_text("✅ WhatsApp reminder sent! Check your WhatsApp!")
+    else:
+        await update.message.reply_text(f"❌ Failed: {result}")
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await start(update, context)
 
@@ -327,12 +341,21 @@ async def check_reminders(app):
             time_left = a["deadline"] - now
             if timedelta(hours=23) <= time_left <= timedelta(hours=25):
                 chat_id = user_chat_ids.get(user_id)
+                emoji = "📝" if a["type"] == "exam" else "📚"
+                reminder_text = (
+                    f"⏰ REMINDER!\n\n"
+                    f"{emoji} {a['subject']} is due TOMORROW!\n"
+                    f"📅 Deadline: {a['deadline_str']}\n\n"
+                    f"Don't forget to prepare! 💪"
+                )
+                # Send to Telegram
                 if chat_id:
-                    emoji = "📝" if a["type"] == "exam" else "📚"
                     await app.bot.send_message(
                         chat_id=chat_id,
-                        text=f"⏰ REMINDER!\n\n{emoji} {a['subject']} is due TOMORROW!\n📅 Deadline: {a['deadline_str']}\n\nDon't forget to prepare! 💪"
+                        text=reminder_text
                     )
+                # Send to WhatsApp too
+                send_whatsapp(MY_PHONE, reminder_text)
 
 def main():
     app = Application.builder().token(TOKEN).build()
@@ -350,6 +373,7 @@ def main():
     app.add_handler(CommandHandler("motivate", motivate))
     app.add_handler(CommandHandler("tips", tips))
     app.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CommandHandler("testwhatsapp", test_whatsapp))
     job_queue = app.job_queue
     job_queue.run_repeating(
         lambda context: check_reminders(app),
