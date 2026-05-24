@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyMind AI — Student Dashboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f0f1a; color: #fff; min-height: 100vh; }
+  
+  .header { background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 20px 30px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #2a2a4a; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-icon { width: 40px; height: 40px; background: #1D9E75; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .logo-text { font-size: 20px; font-weight: 600; color: #fff; }
+  .logo-sub { font-size: 12px; color: #888; }
+  .header-right { display: flex; align-items: center; gap: 15px; }
+  .status-badge { background: #1D9E75; color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+  .date-time { font-size: 13px; color: #888; }
+
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 25px 30px 0; }
+  .metric-card { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 12px; padding: 20px; }
+  .metric-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .metric-value { font-size: 28px; font-weight: 600; }
+  .metric-sub { font-size: 12px; color: #666; margin-top: 4px; }
+  .metric-green { color: #1D9E75; }
+  .metric-red { color: #E24B4A; }
+  .metric-blue { color: #5B8DEF; }
+  .metric-purple { color: #9B72CF; }
+
+  .main { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px 30px; }
+  .panel { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 12px; padding: 20px; }
+  .panel-title { font-size: 15px; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+
+  .task-input { display: flex; gap: 8px; margin-bottom: 15px; }
+  .task-input input { flex: 1; background: #0f0f1a; border: 1px solid #2a2a4a; border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13px; outline: none; }
+  .task-input input:focus { border-color: #1D9E75; }
+  .btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; }
+  .btn-green { background: #1D9E75; color: #fff; }
+  .btn-green:hover { background: #178a65; }
+  .btn-red { background: #E24B4A; color: #fff; }
+  .btn-blue { background: #5B8DEF; color: #fff; }
+
+  .task-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #2a2a4a; }
+  .task-item:last-child { border-bottom: none; }
+  .task-check { width: 18px; height: 18px; border-radius: 4px; border: 2px solid #2a2a4a; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .task-check.done { background: #1D9E75; border-color: #1D9E75; }
+  .task-info { flex: 1; }
+  .task-name { font-size: 13px; font-weight: 500; }
+  .task-name.done { text-decoration: line-through; color: #555; }
+  .task-deadline { font-size: 11px; color: #888; margin-top: 2px; }
+  .tag { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+  .tag-red { background: #3a1a1a; color: #E24B4A; }
+  .tag-green { background: #1a3a2a; color: #1D9E75; }
+  .tag-blue { background: #1a2a3a; color: #5B8DEF; }
+  .tag-yellow { background: #3a2a1a; color: #F0A500; }
+
+  .countdown-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #2a2a4a; }
+  .countdown-item:last-child { border-bottom: none; }
+  .countdown-left { display: flex; align-items: center; gap: 10px; }
+  .countdown-emoji { font-size: 20px; }
+  .countdown-subject { font-size: 14px; font-weight: 500; }
+  .countdown-date { font-size: 11px; color: #888; }
+  .countdown-days { font-size: 22px; font-weight: 700; }
+  .countdown-days.urgent { color: #E24B4A; }
+  .countdown-days.soon { color: #F0A500; }
+  .countdown-days.ok { color: #1D9E75; }
+
+  .ai-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ai-tool { background: #0f0f1a; border: 1px solid #2a2a4a; border-radius: 10px; padding: 15px; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .ai-tool:hover { border-color: #1D9E75; transform: translateY(-2px); }
+  .ai-tool-emoji { font-size: 24px; margin-bottom: 8px; }
+  .ai-tool-name { font-size: 13px; font-weight: 500; }
+  .ai-tool-desc { font-size: 11px; color: #888; margin-top: 4px; }
+
+  .ai-output { background: #0f0f1a; border: 1px solid #2a2a4a; border-radius: 10px; padding: 15px; margin-top: 15px; min-height: 80px; font-size: 13px; color: #ccc; line-height: 1.6; white-space: pre-wrap; display: none; }
+  .ai-input-row { display: flex; gap: 8px; margin-top: 10px; }
+  .ai-input-row input { flex: 1; background: #0f0f1a; border: 1px solid #2a2a4a; border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13px; outline: none; }
+
+  .internship-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #2a2a4a; }
+  .internship-item:last-child { border-bottom: none; }
+  .company-logo { width: 36px; height: 36px; border-radius: 8px; background: #2a2a4a; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #888; }
+  .internship-info { flex: 1; }
+  .internship-title { font-size: 13px; font-weight: 500; }
+  .internship-meta { font-size: 11px; color: #888; margin-top: 2px; }
+  .apply-btn { font-size: 11px; padding: 5px 12px; border-radius: 6px; background: transparent; border: 1px solid #2a2a4a; color: #888; cursor: pointer; }
+  .apply-btn:hover { border-color: #1D9E75; color: #1D9E75; }
+
+  .bot-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 5px; }
+  .bot-link { display: flex; align-items: center; gap: 10px; background: #0f0f1a; border: 1px solid #2a2a4a; border-radius: 10px; padding: 12px 15px; text-decoration: none; color: #fff; transition: all 0.2s; }
+  .bot-link:hover { border-color: #1D9E75; }
+  .bot-link-emoji { font-size: 20px; }
+  .bot-link-text { font-size: 13px; font-weight: 500; }
+  .bot-link-sub { font-size: 11px; color: #888; }
+
+  .full-width { grid-column: 1 / -1; }
+  .progress-bar { height: 6px; background: #2a2a4a; border-radius: 99px; overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; border-radius: 99px; transition: width 0.3s; }
+
+  .empty-state { text-align: center; padding: 30px; color: #555; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">🤖</div>
+    <div>
+      <div class="logo-text">StudyMind AI</div>
+      <div class="logo-sub">Student Productivity Dashboard</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="status-badge">🟢 Bot Active</span>
+    <span class="date-time" id="datetime"></span>
+  </div>
+</div>
+
+<div class="metrics">
+  <div class="metric-card">
+    <div class="metric-label">Pending Tasks</div>
+    <div class="metric-value metric-red" id="pending-count">0</div>
+    <div class="metric-sub">assignments & exams</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Completed</div>
+    <div class="metric-value metric-green" id="done-count">0</div>
+    <div class="metric-sub">this session</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Upcoming Exams</div>
+    <div class="metric-value metric-purple" id="exam-count">0</div>
+    <div class="metric-sub">scheduled</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Study Streak</div>
+    <div class="metric-value metric-blue">🔥 1</div>
+    <div class="metric-sub">days active</div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Assignments Panel -->
+  <div class="panel">
+    <div class="panel-title">📚 Assignment Tracker</div>
+    <div class="task-input">
+      <input type="text" id="task-subject" placeholder="Subject name">
+      <input type="date" id="task-date" style="background:#0f0f1a;border:1px solid #2a2a4a;border-radius:8px;padding:8px;color:#fff;outline:none;">
+      <button class="btn btn-green" onclick="addTask()">Add</button>
+    </div>
+    <div id="task-list">
+      <div class="empty-state">No assignments yet!<br>Add one above 👆</div>
+    </div>
+    <div style="margin-top:15px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:4px">
+        <span>Weekly Progress</span>
+        <span id="progress-text">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-bar" style="width:0%;background:#1D9E75"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exam Countdown Panel -->
+  <div class="panel">
+    <div class="panel-title">⏳ Exam Countdown</div>
+    <div class="task-input">
+      <input type="text" id="exam-subject" placeholder="Exam subject">
+      <input type="date" id="exam-date" style="background:#0f0f1a;border:1px solid #2a2a4a;border-radius:8px;padding:8px;color:#fff;outline:none;">
+      <button class="btn btn-blue" onclick="addExam()">Add</button>
+    </div>
+    <div id="exam-list">
+      <div class="empty-state">No exams added yet!<br>Add one above 👆</div>
+    </div>
+  </div>
+
+  <!-- AI Tools Panel -->
+  <div class="panel">
+    <div class="panel-title">🤖 AI Study Tools</div>
+    <div class="ai-tools">
+      <div class="ai-tool" onclick="showAIInput('summarize')">
+        <div class="ai-tool-emoji">📚</div>
+        <div class="ai-tool-name">Study Summary</div>
+        <div class="ai-tool-desc">AI notes for any topic</div>
+      </div>
+      <div class="ai-tool" onclick="showAIInput('quiz')">
+        <div class="ai-tool-emoji">🧠</div>
+        <div class="ai-tool-name">Practice Quiz</div>
+        <div class="ai-tool-desc">5 MCQ questions</div>
+      </div>
+      <div class="ai-tool" onclick="showAIInput('tips')">
+        <div class="ai-tool-emoji">📖</div>
+        <div class="ai-tool-name">Exam Tips</div>
+        <div class="ai-tool-desc">Strategy & shortcuts</div>
+      </div>
+      <div class="ai-tool" onclick="getMotivation()">
+        <div class="ai-tool-emoji">💪</div>
+        <div class="ai-tool-name">Motivate Me!</div>
+        <div class="ai-tool-desc">Daily inspiration</div>
+      </div>
+    </div>
+    <div class="ai-input-row" id="ai-input-row" style="display:none">
+      <input type="text" id="ai-topic" placeholder="Enter topic...">
+      <button class="btn btn-green" onclick="runAI()">Generate</button>
+    </div>
+    <div class="ai-output" id="ai-output">Loading AI response...</div>
+  </div>
+
+  <!-- Internships Panel -->
+  <div class="panel">
+    <div class="panel-title">💼 Internship Alerts</div>
+    <div id="internship-list">
+      <div class="internship-item">
+        <div class="company-logo">DL</div>
+        <div class="internship-info">
+          <div class="internship-title">Deloitte — Business Analyst Intern</div>
+          <div class="internship-meta">Hyderabad · ₹15,000/mo · <span style="color:#E24B4A">2 days left</span></div>
+        </div>
+        <button class="apply-btn" onclick="window.open('https://internshala.com/internships/business-administration-internship')">Apply</button>
+      </div>
+      <div class="internship-item">
+        <div class="company-logo">MS</div>
+        <div class="internship-info">
+          <div class="internship-title">Microsoft — AI/ML Student Intern</div>
+          <div class="internship-meta">Hyderabad · ₹20,000/mo · <span style="color:#1D9E75">New</span></div>
+        </div>
+        <button class="apply-btn" onclick="window.open('https://internshala.com/internships/business-administration-internship')">Apply</button>
+      </div>
+      <div class="internship-item">
+        <div class="company-logo">GG</div>
+        <div class="internship-info">
+          <div class="internship-title">Google — Business Development Intern</div>
+          <div class="internship-meta">Remote · Certificate + Stipend</div>
+        </div>
+        <button class="apply-btn" onclick="window.open('https://internshala.com/internships/business-administration-internship')">Apply</button>
+      </div>
+      <div class="internship-item">
+        <div class="company-logo">AM</div>
+        <div class="internship-info">
+          <div class="internship-title">Amazon — Operations Intern</div>
+          <div class="internship-meta">Hyderabad · ₹18,000/mo</div>
+        </div>
+        <button class="apply-btn" onclick="window.open('https://internshala.com/internships/business-administration-internship')">Apply</button>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:12px">
+      <button class="btn btn-green" onclick="window.open('https://internshala.com/internships/business-administration-internship')" style="width:100%">View All Internships on Internshala →</button>
+    </div>
+  </div>
+
+  <!-- Bot Links Panel -->
+  <div class="panel full-width">
+    <div class="panel-title">📱 Quick Access</div>
+    <div class="bot-links">
+      <a href="https://t.me/studymind_solver_bot" target="_blank" class="bot-link">
+        <div class="bot-link-emoji">✈️</div>
+        <div>
+          <div class="bot-link-text">Open Telegram Bot</div>
+          <div class="bot-link-sub">@studymind_solver_bot</div>
+        </div>
+      </a>
+      <a href="https://github.com/Shivaa-art/studymind-ai" target="_blank" class="bot-link">
+        <div class="bot-link-emoji">🐙</div>
+        <div>
+          <div class="bot-link-text">GitHub Repository</div>
+          <div class="bot-link-sub">View source code</div>
+        </div>
+      </a>
+      <a href="https://unstop.com/hackathons" target="_blank" class="bot-link">
+        <div class="bot-link-emoji">🏆</div>
+        <div>
+          <div class="bot-link-text">Find Hackathons</div>
+          <div class="bot-link-sub">Unstop, Devfolio, SIH</div>
+        </div>
+      </a>
+      <a href="https://internshala.com/internships/business-administration-internship" target="_blank" class="bot-link">
+        <div class="bot-link-emoji">💼</div>
+        <div>
+          <div class="bot-link-text">BBA Internships</div>
+          <div class="bot-link-sub">Internshala listings</div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+  let exams = JSON.parse(localStorage.getItem('exams') || '[]');
+  let currentAITool = '';
+
+  // Update datetime
+  function updateTime() {
+    const now = new Date();
+    document.getElementById('datetime').textContent = now.toLocaleString('en-IN', {
+      weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+    });
+  }
+  updateTime();
+  setInterval(updateTime, 1000);
+
+  function saveTasks() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    localStorage.setItem('exams', JSON.stringify(exams));
+  }
+
+  function updateMetrics() {
+    const pending = tasks.filter(t => !t.done).length;
+    const done = tasks.filter(t => t.done).length;
+    const total = tasks.length;
+    document.getElementById('pending-count').textContent = pending;
+    document.getElementById('done-count').textContent = done;
+    document.getElementById('exam-count').textContent = exams.length;
+    const pct = total > 0 ? Math.round((done/total)*100) : 0;
+    document.getElementById('progress-text').textContent = pct + '%';
+    document.getElementById('progress-bar').style.width = pct + '%';
+  }
+
+  function getDaysLeft(dateStr) {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const deadline = new Date(dateStr);
+    return Math.ceil((deadline - today) / (1000*60*60*24));
+  }
+
+  function renderTasks() {
+    const list = document.getElementById('task-list');
+    if (tasks.length === 0) {
+      list.innerHTML = '<div class="empty-state">No assignments yet!<br>Add one above 👆</div>';
+      updateMetrics();
+      return;
+    }
+    list.innerHTML = tasks.map((t, i) => {
+      const days = getDaysLeft(t.date);
+      let tag = '';
+      if (days < 0) tag = '<span class="tag tag-red">Overdue</span>';
+      else if (days === 0) tag = '<span class="tag tag-red">Today!</span>';
+      else if (days <= 2) tag = '<span class="tag tag-yellow">' + days + 'd left</span>';
+      else tag = '<span class="tag tag-green">' + days + 'd left</span>';
+      return `
+        <div class="task-item">
+          <div class="task-check ${t.done ? 'done' : ''}" onclick="toggleTask(${i})">
+            ${t.done ? '✓' : ''}
+          </div>
+          <div class="task-info">
+            <div class="task-name ${t.done ? 'done' : ''}">${t.subject} ${tag}</div>
+            <div class="task-deadline">Due: ${t.date}</div>
+          </div>
+          <button onclick="deleteTask(${i})" style="background:none;border:none;color:#555;cursor:pointer;font-size:16px;">×</button>
+        </div>`;
+    }).join('');
+    updateMetrics();
+  }
+
+  function renderExams() {
+    const list = document.getElementById('exam-list');
+    if (exams.length === 0) {
+      list.innerHTML = '<div class="empty-state">No exams added yet!<br>Add one above 👆</div>';
+      return;
+    }
+    list.innerHTML = exams.map((e, i) => {
+      const days = getDaysLeft(e.date);
+      let cls = days <= 1 ? 'urgent' : days <= 5 ? 'soon' : 'ok';
+      let emoji = days <= 1 ? '🔥' : days <= 5 ? '⚠️' : '📅';
+      let daysText = days < 0 ? 'Past!' : days === 0 ? 'TODAY!' : days === 1 ? 'Tomorrow!' : days + ' days';
+      return `
+        <div class="countdown-item">
+          <div class="countdown-left">
+            <div class="countdown-emoji">${emoji}</div>
+            <div>
+              <div class="countdown-subject">${e.subject}</div>
+              <div class="countdown-date">${e.date}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="countdown-days ${cls}">${daysText}</div>
+            <button onclick="deleteExam(${i})" style="background:none;border:none;color:#555;cursor:pointer;font-size:16px;">×</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function addTask() {
+    const subject = document.getElementById('task-subject').value.trim();
+    const date = document.getElementById('task-date').value;
+    if (!subject || !date) { alert('Please fill in subject and date!'); return; }
+    tasks.push({ subject, date, done: false });
+    saveTasks();
+    renderTasks();
+    document.getElementById('task-subject').value = '';
+    document.getElementById('task-date').value = '';
+  }
+
+  function addExam() {
+    const subject = document.getElementById('exam-subject').value.trim();
+    const date = document.getElementById('exam-date').value;
+    if (!subject || !date) { alert('Please fill in subject and date!'); return; }
+    exams.push({ subject, date });
+    saveTasks();
+    renderExams();
+    document.getElementById('exam-subject').value = '';
+    document.getElementById('exam-date').value = '';
+  }
+
+  function toggleTask(i) {
+    tasks[i].done = !tasks[i].done;
+    saveTasks();
+    renderTasks();
+  }
+
+  function deleteTask(i) {
+    tasks.splice(i, 1);
+    saveTasks();
+    renderTasks();
+  }
+
+  function deleteExam(i) {
+    exams.splice(i, 1);
+    saveTasks();
+    renderExams();
+  }
+
+  function showAIInput(tool) {
+    currentAITool = tool;
+    document.getElementById('ai-input-row').style.display = 'flex';
+    document.getElementById('ai-topic').placeholder = 
+      tool === 'summarize' ? 'Enter topic (e.g. Marketing Management)' :
+      tool === 'quiz' ? 'Enter topic for quiz (e.g. Finance)' :
+      'Enter subject for exam tips';
+    document.getElementById('ai-topic').focus();
+  }
+
+  async function runAI() {
+    const topic = document.getElementById('ai-topic').value.trim();
+    if (!topic) return;
+    const output = document.getElementById('ai-output');
+    output.style.display = 'block';
+    output.textContent = '🤖 Generating... please wait!';
+    
+    const prompts = {
+      summarize: `You are a study assistant for Indian BBA students. Create a concise study summary for: ${topic}. Format with key concepts, important topics, exam tips, and quick revision.`,
+      quiz: `Generate 5 MCQ questions for Indian BBA students on: ${topic}. Format each with Q, 4 options (A/B/C/D), and the correct answer.`,
+      tips: `Give exam strategy tips for Indian BBA students for: ${topic}. Include time management, focus areas, common mistakes, and last-day strategy.`
+    };
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompts[currentAITool] }]
+        })
+      });
+      const data = await response.json();
+      output.textContent = data.content[0].text;
+    } catch(e) {
+      output.textContent = '❌ Error connecting to AI. Please try again!';
+    }
+  }
+
+  async function getMotivation() {
+    const output = document.getElementById('ai-output');
+    output.style.display = 'block';
+    document.getElementById('ai-input-row').style.display = 'none';
+    output.textContent = '💪 Getting your motivation...';
+    
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 300,
+          messages: [{ role: 'user', content: 'Write a short powerful motivational message for an Indian BBA student. Reference Indian student life. End with a quote from a successful Indian personality. Under 100 words.' }]
+        })
+      });
+      const data = await response.json();
+      output.textContent = data.content[0].text;
+    } catch(e) {
+      output.textContent = '💪 You are capable of amazing things! Every expert was once a beginner. Keep going!\n\n🌟 "Arise, awake, and stop not till the goal is reached." — Swami Vivekananda';
+    }
+  }
+
+  // Initialize
+  renderTasks();
+  renderExams();
+</script>
+</body>
+</html>
